@@ -9,7 +9,9 @@ import routes from "./routes";
 const app: Application = express();
 
 const middleware = [
-  cors(),
+  cors({
+    origin: ["https://library-management-pi-vert.vercel.app"],
+  }),
   express.json(),
   express.urlencoded({ extended: true }),
 ];
