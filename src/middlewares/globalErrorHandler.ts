@@ -6,7 +6,7 @@ import {
   RequestHandler,
   Response,
 } from "express";
-import config from "../config";
+// import config from "../config";
 
 // Not Found Route Handler
 export const notFoundHandler: RequestHandler = (
@@ -21,48 +21,48 @@ export const notFoundHandler: RequestHandler = (
 };
 
 // Global Error Handler
-export const errorHandler = (
-  err: any,
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  // const statusCode = err.statusCode || 500;
-  // const message = err.message || "Internal Server Error";
+interface CustomError {
+  statusCode?: number;
+  customError?: any;
+  name?: string;
+  message?: string;
+  [key: string]: any;
+}
 
-  // res.status(statusCode).json({
-  //   success: false,
-  //   message,
-  //   stack: config.node_env === "development" ? err.stack : undefined,
-  // });
+export const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
+  // Cast err to our custom type for TypeScript
+  const e = err as CustomError;
 
-  if (err.name === "ValidationError") {
+  // Handle Mongoose ValidationError
+  if (e.name === "ValidationError" && e.errors) {
     const errors: Record<string, any> = {};
 
-    for (const field in err.errors) {
+    for (const field in e.errors) {
       errors[field] = {
-        message: err.errors[field].message,
-        name: err.errors[field].name,
-        properties: err.errors[field].properties,
-        kind: err.errors[field].kind,
-        path: err.errors[field].path,
-        value: err.errors[field].value,
+        message: e.errors[field].message,
+        name: e.errors[field].name,
+        properties: e.errors[field].properties,
+        kind: e.errors[field].kind,
+        path: e.errors[field].path,
+        value: e.errors[field].value,
       };
     }
 
-    return res.status(400).json({
+    res.status(400).json({
       message: "Validation failed",
       success: false,
       error: {
-        name: err.name,
+        name: e.name,
         errors,
       },
     });
+    return; // exit the function
   }
 
-  res.status(err.statusCode || 500).json({
-    message: err.message || "Something went wrong",
+  // Handle other errors
+  res.status(e.statusCode || 500).json({
+    message: e.message || "Something went wrong",
     success: false,
-    error: err,
+    error: e,
   });
 };

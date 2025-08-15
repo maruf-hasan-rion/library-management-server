@@ -26,9 +26,10 @@ const borrowSchema = new Schema<IBorrow>(
 );
 
 borrowSchema.pre("save", async function (next) {
-  const borrow = this;
+  // const borrow = this;
+  if (!this.book) return next();
 
-  const book = await Book.findById(borrow.book);
+  const book = await Book.findById(this.book);
 
   if (!book) {
     const error: any = new Error("Book not found");
@@ -39,14 +40,14 @@ borrowSchema.pre("save", async function (next) {
       error: {
         name: "NotFoundError",
         path: "book",
-        message: `Book with ID ${borrow.book} does not exist`,
+        message: `Book with ID ${this.book} does not exist`,
       },
     };
 
     return next(error);
   }
 
-  if (book.copies < borrow.quantity) {
+  if (book.copies < this.quantity) {
     const error: any = new Error(
       `Only ${book.copies} copies available to borrow`
     );
@@ -64,7 +65,7 @@ borrowSchema.pre("save", async function (next) {
     return next(error);
   }
 
-  book.copies -= borrow.quantity;
+  book.copies -= this.quantity;
   book.checkAvailability();
 
   await book.save();
