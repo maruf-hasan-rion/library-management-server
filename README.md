@@ -1,27 +1,49 @@
-# library-management
+# 📚 Library Management Server
 
-A minimal REST API for managing books, built with **Node.js**, **Express**, and **TypeScript**.  
-Supports filtering, sorting, limiting results, and provides a consistent **generic error response** format.
+A Library Management System API built with **Express.js, TypeScript, and MongoDB (Mongoose)**.
+
+This API allows you to manage books, borrow books, and retrieve a summary of borrowed books with aggregation.
 
 ---
 
 ## Features
 
-- Add, retrieve, update, and delete books
-- Query filtering, sorting, and limiting
-- Consistent API response structure
-- Generic error handling with detailed validation messages
-- Built with TypeScript for better type safety
+- Create, update, delete, and retrieve books
+- Filter, sort, and limit book results
+- Borrow books with quantity validation
+- GBorrowed books summary using MongoDB aggregation
+- Schema validation with Mongoose
+- Business logic enforcement (copies & availability control)
+- Global error handling
+- Clean and consistent API response structure
 
 ---
 
 ## Tech Stack
 
-- Node.js + Express
-- TypeScript
-- MongoDB + Mongoose
-- dotenv
-- nodemon (for development)
+- **Backend:** Node.js, Express.js
+- **Language:** TypeScript
+- **Database:** MongoDB
+- **ODM:** Mongoose
+- **Environment Config:** dotenv
+
+---
+
+## 📂 Project Structure
+
+```
+src/
+│
+├── config/
+├── middlewares/
+├── modules/
+│   ├── book/
+│   └── borrow/
+├── routes/
+├── app.ts
+└── server.ts
+
+```
 
 ---
 
@@ -32,38 +54,55 @@ Supports filtering, sorting, limiting results, and provides a consistent **gener
 - Node.js v18+
 - MongoDB URI (local or Atlas)
 
-## 📦 Installation & Setup
+### ⚙️ Installation & Setup
+
+1. **Clone the repository:**
 
 ```bash
-# Clone the repository
 git clone https://github.com/maruf-hasan-rion/library-management-server.git
-
 cd library-management-server
+```
 
-# Install dependencies
+2. **Install dependencies:**
+
+```bash
 npm install
+```
 
-# Start development server
-npm run dev
+3. **Set up environment variables:**
+   Create a `.env` file in the root directory.
+   Use the `.env.example` file as a template.
 
-# Build and start production server
-npm run build
+   ```env
+   NODE_ENV=development
+   PORT=5000
+   DATABASE_URL=your_mongodb_connection_string
+   ```
 
+4. **Run the project:**
+   Development mode:
+   ```bash
+    npm run dev
+   ```
+   Production build:
+   ```bash
+   npm run build
+   npm start
+   ```
 
-⚙️ Environment Variables
+---
 
-Create a .env file in the project root with the following variables:
+## 🌐 Base URL
 
-PORT=
-MONGO_URI=
-
+```bash
+http://localhost:5000/api
 ```
 
 ---
 
-# 📌 API Endpoints
+## 📌 API Endpoints
 
-## Books
+### Books
 
 | Method | Endpoint         | Description             |
 | ------ | ---------------- | ----------------------- |
@@ -73,7 +112,7 @@ MONGO_URI=
 | PUT    | `/api/books/:id` | Update a book           |
 | DELETE | `/api/books/:id` | Delete a book           |
 
-## 🔍 Query Parameters for /api/books
+### 🔍 Query Parameters for /api/books
 
 You can use the following query parameters:
 
@@ -91,14 +130,14 @@ GET /api/books?filter=FANTASY&sortBy=createdAt&sort=desc&limit=5
 
 ```
 
-### 6. Borrow a Book
+### Borrow a Book
 
 ```
 POST /api/borrow
 
 ```
 
-**Body:**
+**Request:**
 
 ```json
 {
@@ -108,14 +147,14 @@ POST /api/borrow
 }
 ```
 
-### 7. Borrow Summary
+### Borrow Summary
 
 ```
 GET /api/borrow
 
 ```
 
-**Returns:**
+**Response:**
 
 ```json
 {
@@ -133,9 +172,7 @@ GET /api/borrow
 }
 ```
 
----
-
-## Error Handling Format
+### Error Handling Format
 
 All errors follow this structure:
 
@@ -157,3 +194,15 @@ All errors follow this structure:
   }
 }
 ```
+
+---
+
+## Author
+
+Maruf Hasan Rion
+
+---
+
+## License
+
+This project is created for academic purposes.

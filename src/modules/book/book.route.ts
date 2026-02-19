@@ -11,8 +11,8 @@ const bookRoute = Router();
 
 bookRoute.post("/", createBook);
 bookRoute.get("/", getAllBooks);
-bookRoute.get("/:bookId", getBookById);
-bookRoute.put("/:bookId", updateBook);
-bookRoute.delete("/:bookId", deleteBook);
+bookRoute.get("/:id", getBookById);
+bookRoute.put("/:id", updateBook);
+bookRoute.delete("/:id", deleteBook);
 
 export default bookRoute;
