@@ -8,18 +8,22 @@ import routes from "./routes";
 
 const app: Application = express();
 
-const middleware = [
+const middlewares = [
   cors({
-    origin: ["https://library-management-pi-vert.vercel.app"],
+    origin: [
+      "https://library-management-client-gamma-blue.vercel.app",
+      "http://localhost:5173",
+    ],
   }),
   express.json(),
   express.urlencoded({ extended: true }),
 ];
-app.use(middleware);
+
+app.use(middlewares);
 app.use("/api", routes);
 
 app.get("/", (req: Request, res: Response) => {
-  res.send({ success: true, message: `Sever is running` });
+  res.status(200).json({ success: true, message: "Server is running" });
 });
 
 app.use(notFoundHandler);

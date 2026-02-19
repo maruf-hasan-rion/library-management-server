@@ -4,7 +4,7 @@ import { Book } from "./book.model";
 export const createBook = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     const body = req.body;
@@ -23,44 +23,41 @@ export const createBook = async (
 export const getAllBooks = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
-  // try {
-  //   const books = await Book.find().sort({ createdAt: -1 }).limit(10);
-
-  //   res.json({
-  //     success: true,
-  //     message:
-  //       books.length > 0 ? "Books retrieved successfully" : "No books found",
-  //     data: books,
-  //   });
-  // } catch (error) {
-  //   next(error);
-  // }
   try {
-    const {
-      filter,
-      sortBy = "createdAt",
-      sort = "desc",
-      limit = "10",
-    } = req.query;
+    const { filter, sortBy, sort, limit } = req.query;
 
+    // filter (genre)
     const filterObj: Record<string, any> = {};
     if (filter) {
       filterObj.genre = filter;
     }
 
-    const sortOrder = sort === "asc" ? 1 : -1;
-    const sortObj: Record<string, 1 | -1> = { [sortBy as string]: sortOrder };
+    // sortBy whitelist
+    const allowedSortBy = [
+      "createdAt",
+      "updatedAt",
+      "title",
+      "author",
+      "copies",
+    ];
+    const sortByValue = allowedSortBy.includes(sortBy as string)
+      ? (sortBy as string)
+      : "createdAt";
 
-    const books = await Book.find(filterObj)
-      .sort(sortObj)
-      .limit(parseInt(limit as string, 10));
+    // sort direction
+    const sortOrder: 1 | -1 = sort === "asc" ? 1 : -1;
+    const sortObj: Record<string, 1 | -1> = { [sortByValue]: sortOrder };
+
+    // limit safe parse
+    const limitNumber = Math.max(1, parseInt(limit as string, 10) || 10);
+
+    const books = await Book.find(filterObj).sort(sortObj).limit(limitNumber);
 
     res.json({
       success: true,
-      message:
-        books.length > 0 ? "Books retrieved successfully" : "No books found",
+      message: books.length ? "Books retrieved successfully" : "No books found",
       data: books,
     });
   } catch (error) {
@@ -71,7 +68,7 @@ export const getAllBooks = async (
 export const getBookById = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     const id = req.params.bookId;
@@ -103,7 +100,7 @@ export const getBookById = async (
 export const updateBook = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     const id = req.params.bookId;
@@ -125,7 +122,6 @@ export const updateBook = async (
     }
 
     Object.assign(book, updateData);
-    book.checkAvailability();
     await book.save();
 
     res.json({
@@ -141,7 +137,7 @@ export const updateBook = async (
 export const deleteBook = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     const id = req.params.bookId;

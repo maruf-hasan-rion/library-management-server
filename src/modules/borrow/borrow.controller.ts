@@ -4,7 +4,7 @@ import { Borrow } from "./borrow.model";
 export const borrowBook = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     const { book, quantity, dueDate } = req.body;
@@ -23,7 +23,7 @@ export const borrowBook = async (
 export const getBorrowedBooksSummary = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     const summary = await Borrow.aggregate([
@@ -56,7 +56,7 @@ export const getBorrowedBooksSummary = async (
       },
     ]);
 
-    res.status(201).json({
+    res.status(200).json({
       success: true,
       message: "Borrowed books summary retrieved successfully",
       data: summary,

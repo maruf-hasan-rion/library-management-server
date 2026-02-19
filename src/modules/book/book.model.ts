@@ -4,11 +4,7 @@ import { Borrow } from "../borrow/borrow.model";
 
 const bookSchema = new Schema<IBook>(
   {
-    title: {
-      type: String,
-      required: [true, "Title is required"],
-      trim: true,
-    },
+    title: { type: String, required: [true, "Title is required"], trim: true },
     author: {
       type: String,
       required: [true, "Author is required"],
@@ -36,36 +32,33 @@ const bookSchema = new Schema<IBook>(
       unique: true,
       trim: true,
     },
-    description: {
-      type: String,
-      default: "",
-      trim: true,
-    },
+    description: { type: String, trim: true },
     copies: {
       type: Number,
       required: [true, "Number of copies is required"],
       min: [0, "Copies cannot be negative"],
+      validate: {
+        validator: Number.isInteger,
+        message: "Copies must be an integer",
+      },
     },
-    available: {
-      type: Boolean,
-      default: true,
-    },
+    available: { type: Boolean, default: true },
   },
-  {
-    versionKey: false,
-    timestamps: true,
-  }
+  { versionKey: false, timestamps: true },
 );
 
-bookSchema.method("checkAvailability", function () {
+bookSchema.pre("save", function (next) {
   this.available = this.copies > 0;
+  next();
 });
 
 bookSchema.post("findOneAndDelete", async function (doc, next) {
-  if (doc) {
-    await Borrow.deleteMany({ book: doc._id });
+  try {
+    if (doc) await Borrow.deleteMany({ book: doc._id });
+    next();
+  } catch (err) {
+    next(err as any);
   }
-  next();
 });
 
 export const Book = model<IBook>("Book", bookSchema);

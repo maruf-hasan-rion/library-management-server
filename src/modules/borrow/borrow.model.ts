@@ -13,6 +13,10 @@ const borrowSchema = new Schema<IBorrow>(
       type: Number,
       required: [true, "Quantity is required"],
       min: [1, "Quantity must be at least 1"],
+      validate: {
+        validator: Number.isInteger,
+        message: "Quantity must be an integer",
+      },
     },
     dueDate: {
       type: Date,
@@ -22,54 +26,65 @@ const borrowSchema = new Schema<IBorrow>(
   {
     versionKey: false,
     timestamps: true,
-  }
+  },
 );
 
 borrowSchema.pre("save", async function (next) {
-  // const borrow = this;
-  if (!this.book) return next();
+  try {
+    if (!this.book) return next();
 
-  const book = await Book.findById(this.book);
-
-  if (!book) {
-    const error: any = new Error("Book not found");
-    error.statusCode = 404;
-    error.customError = {
-      success: false,
-      message: "Book not found",
-      error: {
-        name: "NotFoundError",
-        path: "book",
-        message: `Book with ID ${this.book} does not exist`,
-      },
-    };
-
-    return next(error);
-  }
-
-  if (book.copies < this.quantity) {
-    const error: any = new Error(
-      `Only ${book.copies} copies available to borrow`
+    const updatedBook = await Book.findOneAndUpdate(
+      { _id: this.book, copies: { $gte: this.quantity } },
+      { $inc: { copies: -this.quantity } },
+      { new: true },
     );
-    error.statusCode = 400;
-    error.customError = {
-      message: "Validation failed",
-      success: false,
-      error: {
-        name: "ValidatorError",
-        path: "copies",
-        message: `Only ${book.copies} copies available to borrow`,
-      },
-    };
 
-    return next(error);
+    if (!updatedBook) {
+      const exists = await Book.exists({ _id: this.book });
+
+      const error: any = new Error(
+        exists ? "Not enough copies available" : "Book not found",
+      );
+
+      if (!exists) {
+        error.statusCode = 404;
+        error.customError = {
+          success: false,
+          message: "Book not found",
+          error: {
+            name: "NotFoundError",
+            path: "book",
+            message: `Book with ID ${this.book} does not exist`,
+          },
+        };
+      } else {
+        error.statusCode = 400;
+        error.customError = {
+          message: "Validation failed",
+          success: false,
+          error: {
+            name: "ValidatorError",
+            path: "copies",
+            message: "Not enough copies available to borrow",
+          },
+        };
+      }
+
+      return next(error);
+    }
+
+    if (updatedBook.copies === 0 && updatedBook.available !== false) {
+      updatedBook.available = false;
+      await updatedBook.save();
+    } else if (updatedBook.copies > 0 && updatedBook.available !== true) {
+      updatedBook.available = true;
+      await updatedBook.save();
+    }
+
+    next();
+  } catch (err) {
+    next(err as any);
   }
-
-  book.copies -= this.quantity;
-  book.checkAvailability();
-
-  await book.save();
-  next();
 });
 
 export const Borrow = model<IBorrow>("Borrow", borrowSchema);
